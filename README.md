@@ -17,6 +17,13 @@ This repository provides an interactive visualizer for the Alpha-Beta Pruning al
 
 2. Open the `index.html` file in a browser to run the visualizer locally.
 
+
+## How to run it
+1. Clone the repository
+2. Open Alpha Beta Visaulizer.html directly in any modern browser
+3. Use the toolbar to add nodes and connect them, or click "Load Example" for a demo tree
+4. Select the root node, then press "Next Step" or "Run All" to execute the algorithm
+
 ## Usage
 
 - Use the controls in the UI to step through nodes.
