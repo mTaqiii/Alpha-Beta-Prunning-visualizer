@@ -37,19 +37,19 @@ Below are screenshots from the visualizer. The image files are stored in the rep
   <img src="screenshots/Screenshot%202026-07-09%20133115.png" width="1000" alt="Visualizer — completed run and step log">
 </p>
 
-**Figure 1.** Completed run summary and step log.
+**Figure 1.** Initial canvas and the control buttons (Add Node, Connect, Move, etc.).
 
 <p align="center">
   <img src="screenshots/Screenshot%202026-07-09%20133233.png" width="1000" alt="Visualizer — tree with pruned branch">
 </p>
 
-**Figure 2.** The tree view showing a pruned branch (dashed and greyed out).
+**Figure 2.** Step By Step processing . Updating values of alpha and beta at each step.
 
 <p align="center">
   <img src="screenshots/Screenshot%202026-07-09%20133247.png" width="1000" alt="Visualizer — initial canvas and controls">
 </p>
 
-**Figure 3.** Initial canvas and the control buttons (Add Node, Connect, Move, etc.).
+**Figure 3.** The tree view showing a pruned branch (dashed and greyed out).
 
 ## Suggested short repository description (for GitHub "About" box)
 
