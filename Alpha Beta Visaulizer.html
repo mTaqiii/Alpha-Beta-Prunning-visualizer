@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha-Beta Pruning Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0F14;
+  --bg2:#13161D;
+  --bg3:#1A1E28;
+  --border:#252933;
+  --border2:#2E3545;
+  --text:#E8EAF0;
+  --text2:#8A91A8;
+  --text3:#555E78;
+  --max:#FF6B6B;
+  --max-bg:rgba(255,107,107,0.12);
+  --max-border:rgba(255,107,107,0.35);
+  --min:#4ECDC4;
+  --min-bg:rgba(78,205,196,0.12);
+  --min-border:rgba(78,205,196,0.35);
+  --active:#FFE66D;
+  --active-bg:rgba(255,230,109,0.12);
+  --pruned:rgba(80,80,100,0.25);
+  --pruned-border:rgba(80,80,100,0.3);
+  --alpha:#A78BFA;
+  --beta:#34D399;
+  --font-mono:'JetBrains Mono', monospace;
+  --font-display:'Syne', sans-serif;
+}
+
+body{
+  font-family:var(--font-display);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding:0;
+}
+
+.app{
+  max-width:1100px;
+  margin:0 auto;
+  padding:1.2rem 1rem 2rem;
+}
+
+/* Header */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:1rem;
+  padding-bottom:.75rem;
+  border-bottom:1px solid var(--border);
+}
+.header-left h1{
+  font-size:1.25rem;
+  font-weight:800;
+  letter-spacing:-.01em;
+  background:linear-gradient(135deg,#FF6B6B,#FFE66D,#4ECDC4);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.header-left p{
+  font-family:var(--font-mono);
+  font-size:.65rem;
+  color:var(--text3);
+  margin-top:2px;
+  letter-spacing:.06em;
+}
+
+.legend-row{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.leg{display:flex;align-items:center;gap:5px;font-size:.65rem;font-family:var(--font-mono);color:var(--text2);}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* Toolbar */
+.toolbar{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:.65rem;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:7px 10px;
+}
+.t-btn{
+  font-family:var(--font-display);
+  font-size:.7rem;
+  font-weight:600;
+  padding:5px 12px;
+  border-radius:6px;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .15s;
+  letter-spacing:.02em;
+}
+.t-btn:hover{background:var(--bg3);color:var(--text);}
+.t-btn.active{background:#534AB7;color:#fff;border-color:#534AB7;}
+.t-btn.danger{border-color:rgba(255,107,107,.4);color:var(--max);}
+.t-btn.danger:hover{background:rgba(255,107,107,.1);}
+.t-btn.success{background:linear-gradient(135deg,#534AB7,#4ECDC4);color:#fff;border-color:transparent;}
+.sep{width:1px;height:22px;background:var(--border2);margin:0 3px;}
+.tb-spacer{flex:1;}
+
+/* Hint bar */
+.hint{
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  color:var(--text2);
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:7px 12px;
+  margin-bottom:.65rem;
+  min-height:30px;
+  line-height:1.6;
+}
+.hint strong{color:var(--text);font-weight:700;}
+
+/* Canvas */
+.canvas-wrap{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:.65rem;
+  position:relative;
+}
+canvas{display:block;width:100%;touch-action:none;cursor:crosshair;}
+
+/* Controls row */
+.ctrl-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:.65rem;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 12px;
+}
+.sel-group{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:.7rem;
+  color:var(--text2);
+  font-family:var(--font-mono);
+}
+select{
+  font-size:.7rem;
+  font-family:var(--font-mono);
+  padding:4px 8px;
+  border-radius:6px;
+  border:1px solid var(--border2);
+  background:var(--bg3);
+  color:var(--text);
+  cursor:pointer;
+}
+.c-btn{
+  font-family:var(--font-display);
+  font-size:.7rem;
+  font-weight:600;
+  padding:5px 14px;
+  border-radius:6px;
+  border:1px solid var(--border2);
+  background:transparent;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .15s;
+}
+.c-btn:hover{background:var(--bg3);color:var(--text);}
+.c-btn.primary{background:linear-gradient(135deg,#534AB7 0%,#7C6FDB 100%);color:#fff;border:none;}
+.c-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* Speed */
+.speed-group{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:.68rem;
+  color:var(--text2);
+  font-family:var(--font-mono);
+}
+input[type=range]{width:80px;accent-color:#534AB7;}
+
+/* Bottom grid */
+.bottom{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:.65rem;
+}
+.panel{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+}
+.panel-title{
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text3);
+  font-family:var(--font-mono);
+  margin-bottom:8px;
+}
+
+/* Alpha/Beta display */
+.ab-row{display:flex;gap:6px;}
+.ab-card{
+  flex:1;
+  border-radius:8px;
+  padding:8px 10px;
+  text-align:center;
+}
+.ab-card.alpha{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);}
+.ab-card.beta{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);}
+.ab-label{font-size:.6rem;font-family:var(--font-mono);color:var(--text3);letter-spacing:.08em;margin-bottom:2px;}
+.ab-val{font-size:1.1rem;font-weight:700;font-family:var(--font-mono);}
+.ab-card.alpha .ab-val{color:var(--alpha);}
+.ab-card.beta .ab-val{color:var(--beta);}
+
+/* Call stack */
+.call-stack{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-height:60px;
+  max-height:100px;
+  overflow-y:auto;
+}
+.cs-item{
+  font-size:.65rem;
+  font-family:var(--font-mono);
+  padding:3px 8px;
+  border-radius:5px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.cs-item.max-type{background:var(--max-bg);border:1px solid var(--max-border);color:var(--max);}
+.cs-item.min-type{background:var(--min-bg);border:1px solid var(--min-border);color:var(--min);}
+.cs-item.top{outline:1.5px solid var(--active);}
+.cs-tag{font-size:.55rem;opacity:.7;}
+
+/* Pruned count */
+.stat-big{font-size:1.6rem;font-weight:800;color:var(--max);font-family:var(--font-mono);}
+.stat-sub{font-size:.6rem;color:var(--text3);font-family:var(--font-mono);margin-top:1px;}
+
+/* Log */
+.log-panel{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+  margin-bottom:0;
+}
+.log-scroll{max-height:120px;overflow-y:auto;}
+.log-line{
+  font-size:.65rem;
+  font-family:var(--font-mono);
+  color:var(--text2);
+  padding:3px 0;
+  border-bottom:1px solid var(--border);
+  line-height:1.6;
+}
+.log-line:last-child{border:none;color:var(--text);font-weight:700;}
+.log-line.prune{color:var(--max);}
+.log-line.done{color:var(--beta);}
+.log-line.max-log{color:var(--max);}
+.log-line.min-log{color:var(--min);}
+
+/* Result banner */
+.result-banner{
+  display:none;
+  background:linear-gradient(135deg,rgba(52,211,153,.15),rgba(78,205,196,.1));
+  border:1px solid rgba(52,211,153,.4);
+  border-radius:10px;
+  padding:10px 16px;
+  font-size:.8rem;
+  font-weight:700;
+  color:var(--beta);
+  margin-bottom:.65rem;
+  font-family:var(--font-mono);
+}
+
+/* Node value input modal */
+.modal-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:14px;
+  padding:24px 28px;
+  width:280px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.modal h3{font-size:.85rem;font-weight:700;margin-bottom:4px;color:var(--text);}
+.modal p{font-size:.65rem;font-family:var(--font-mono);color:var(--text2);margin-bottom:14px;}
+.modal input[type=number], .modal input[type=text]{
+  width:100%;
+  font-family:var(--font-mono);
+  font-size:.85rem;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:7px;
+  color:var(--text);
+  margin-bottom:10px;
+  outline:none;
+}
+.modal input:focus{border-color:#534AB7;}
+.modal-row{display:flex;gap:8px;margin-top:4px;}
+.modal-row label{font-size:.65rem;font-family:var(--font-mono);color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer;}
+.modal-row input[type=radio]{accent-color:#534AB7;}
+.modal-btns{display:flex;gap:8px;margin-top:14px;}
+.modal-btns button{
+  flex:1;font-family:var(--font-display);font-size:.75rem;font-weight:600;
+  padding:8px;border-radius:7px;border:none;cursor:pointer;transition:all .15s;
+}
+.modal-btns .confirm{background:#534AB7;color:#fff;}
+.modal-btns .cancel{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
+
+@media(max-width:680px){
+  .bottom{grid-template-columns:1fr 1fr;}
+  .legend-row{display:none;}
+  .header{flex-direction:column;align-items:flex-start;gap:6px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Alpha-Beta Pruning Visualizer</h1>
+      <p>MINIMAX WITH PRUNING · INTERACTIVE STEP-BY-STEP / Presented by : Taqi</p>
+    </div>
+    <div class="legend-row">
+      <div class="leg"><div class="leg-dot" style="background:#FF6B6B"></div>MAX node</div>
+      <div class="leg"><div class="leg-dot" style="background:#4ECDC4"></div>MIN node</div>
+      <div class="leg"><div class="leg-dot" style="background:#FFE66D"></div>Active</div>
+      <div class="leg"><div class="leg-dot" style="background:#A78BFA"></div>α-cutoff</div>
+      <div class="leg"><div class="leg-dot" style="background:rgba(80,80,120,.5)"></div>Pruned</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="t-btn active" id="tAdd" onclick="setTool('add')">＋ Add Node</button>
+    <button class="t-btn" id="tEdge" onclick="setTool('edge')">⤳ Connect</button>
+    <button class="t-btn" id="tMove" onclick="setTool('move')">⇥ Move</button>
+    <button class="t-btn" id="tDel" onclick="setTool('del')">✕ Delete</button>
+    <div class="sep"></div>
+    <button class="t-btn" onclick="loadExample()">⊞ Load Example</button>
+    <button class="t-btn danger" onclick="clearAll()">⊘ Clear</button>
+    <div class="tb-spacer"></div>
+    <div style="font-size:.62rem;font-family:var(--font-mono);color:var(--text3);">LEAF = terminal node (enter value)</div>
+  </div>
+
+  <!-- Hint -->
+  <div class="hint" id="hint">Click anywhere on the canvas to <strong>add a node</strong>. Leaf nodes need a numeric value. Interior nodes are MAX/MIN alternating by depth.</div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap"><canvas id="gc" height="360"></canvas></div>
+
+  <!-- Controls -->
+  <div class="ctrl-row">
+    <div class="sel-group">Root: <select id="rootSel"><option value="">-- pick --</option></select></div>
+    <div class="sep"></div>
+    <button class="c-btn primary" id="btnStep" onclick="abStep()" disabled>Next Step →</button>
+    <button class="c-btn" id="btnRun" onclick="runAll()" disabled>▶ Run All</button>
+    <button class="c-btn" id="btnPause" onclick="pauseRun()" disabled style="display:none">⏸ Pause</button>
+    <button class="c-btn" onclick="resetAB()">↺ Reset</button>
+    <div class="sep"></div>
+    <div class="speed-group">Speed: <input type="range" id="speedSlider" min="1" max="5" value="3"> <span id="speedLabel">3</span></div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-banner" id="resultBanner"></div>
+
+  <!-- Panels -->
+  <div class="bottom">
+    <div class="panel">
+      <div class="panel-title">α / β Bounds (Current Node)</div>
+      <div class="ab-row">
+        <div class="ab-card alpha"><div class="ab-label">ALPHA (α)</div><div class="ab-val" id="alphaVal">-∞</div></div>
+        <div class="ab-card beta"><div class="ab-label">BETA (β)</div><div class="ab-val" id="betaVal">+∞</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Recursion Stack</div>
+      <div class="call-stack" id="callStack"><div style="font-size:.62rem;color:var(--text3);font-family:var(--font-mono);">empty</div></div>
+    </div>
+    <div class="panel" style="text-align:center;display:flex;flex-direction:column;justify-content:center">
+      <div class="panel-title">Pruned Branches</div>
+      <div class="stat-big" id="prunedCount">0</div>
+      <div class="stat-sub">branches skipped</div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="log-panel">
+    <div class="panel-title">Step Log</div>
+    <div class="log-scroll" id="logWrap"><div class="log-line">Build your tree, pick the root, then press Next Step.</div></div>
+  </div>
+
+</div>
+
+<!-- Node Value Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Configure Node</h3>
+    <p id="modalDesc">Set a label and optionally a leaf value.</p>
+    <input type="text" id="modalLabel" placeholder="Label (A, B, 1…)" maxlength="4">
+    <div style="font-size:.65rem;font-family:var(--font-mono);color:var(--text2);margin-bottom:6px;">Leaf value (leave blank if internal node):</div>
+    <input type="number" id="modalValue" placeholder="e.g. 5, -3, 0">
+    <div class="modal-row">
+      <label><input type="radio" name="nodeType" value="auto" checked> Auto (MAX/MIN by depth)</label>
+      <label><input type="radio" name="nodeType" value="max"> MAX</label>
+      <label><input type="radio" name="nodeType" value="min"> MIN</label>
+    </div>
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal(false)">Cancel</button>
+      <button class="confirm" onclick="closeModal(true)">Add Node</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Canvas Setup ─────────────────────────────────────────────
+const canvas = document.getElementById('gc');
+const ctx = canvas.getContext('2d');
+let dpr = 1;
+
+function setup() {
+  dpr = window.devicePixelRatio || 1;
+  const w = canvas.parentElement.clientWidth || 700;
+  canvas.width = w * dpr; canvas.height = 360 * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = '360px';
+  ctx.scale(dpr, dpr);
+  draw();
+}
+
+// ─── State ────────────────────────────────────────────────────
+let nodes = {}, edgeList = [], nodeCounter = 0;
+let tool = 'add';
+let edgeSrc = null;
+let moveNode = null, moveDx = 0, moveDy = 0;
+
+// AB algo state
+let abSteps = [];       // pre-computed step list
+let abStepIdx = 0;
+let abRunning = false;
+let abDone = false;
+let prunedCount = 0;
+let runTimer = null;
+
+// Per node rendering state (updated each step)
+let nodeState = {};     // {id: {status, alpha, beta, value, pruned}}
+let activeId = null;
+let currentAlpha = -Infinity, currentBeta = Infinity;
+let callStackData = [];
+let prunedEdges = new Set(); // "u->v" strings
+
+// Modal
+let pendingPos = null;
+let pendingCallback = null;
+
+const SPEED_MAP = {1:1200, 2:800, 3:500, 4:250, 5:100};
+document.getElementById('speedSlider').addEventListener('input', e => {
+  document.getElementById('speedLabel').textContent = e.target.value;
+});
+
+// ─── Tool management ──────────────────────────────────────────
+function setTool(t) {
+  tool = t; edgeSrc = null;
+  ['Add','Edge','Move','Del'].forEach(x =>
+    document.getElementById('t'+x).classList.toggle('active', t === x.toLowerCase()));
+  const hints = {
+    add: 'Click on the canvas to <strong>add a node</strong>. You can set a label, leaf value, and type.',
+    edge: 'Click a <strong>parent node</strong>, then click the <strong>child node</strong> to add a directed edge.',
+    move: 'Click and <strong>drag</strong> any node to reposition it.',
+    del: 'Click a <strong>node</strong> to delete it (and its edges).'
+  };
+  document.getElementById('hint').innerHTML = hints[t];
+  draw();
+}
+
+// ─── Input helpers ────────────────────────────────────────────
+function scaleXY(e) {
+  const r = canvas.getBoundingClientRect();
+  const scx = (canvas.width/dpr)/r.width;
+  const scy = (canvas.height/dpr)/r.height;
+  const src = e.touches ? e.touches[0] : e;
+  return {x:(src.clientX-r.left)*scx, y:(src.clientY-r.top)*scy};
+}
+
+function nodeAt(x,y) {
+  for (const [id,n] of Object.entries(nodes)) {
+    if (Math.hypot(x-n.x, y-n.y) < 24) return id;
+  }
+  return null;
+}
+
+// ─── Mouse/Touch ─────────────────────────────────────────────
+canvas.addEventListener('mousedown', onDown);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); onDown(e); }, {passive:false});
+canvas.addEventListener('mousemove', onMove);
+canvas.addEventListener('touchmove', e => { e.preventDefault(); onMove(e); }, {passive:false});
+canvas.addEventListener('mouseup', onUp);
+canvas.addEventListener('touchend', e => { e.preventDefault(); onUp(e); }, {passive:false});
+
+function onDown(e) {
+  const {x,y} = scaleXY(e);
+  const hit = nodeAt(x,y);
+  if (tool === 'add') {
+    if (!hit) { openModal(x, y); }
+  } else if (tool === 'edge') {
+    if (hit) {
+      if (!edgeSrc) { edgeSrc = hit; draw(); }
+      else if (edgeSrc !== hit) {
+        // prevent duplicate
+        const dup = edgeList.find(e => e.u===edgeSrc && e.v===hit);
+        if (!dup) { edgeList.push({u:edgeSrc, v:hit}); }
+        edgeSrc = null; updateSelects(); draw();
+      } else { edgeSrc = null; draw(); }
+    }
+  } else if (tool === 'move') {
+    if (hit) { moveNode=hit; moveDx=x-nodes[hit].x; moveDy=y-nodes[hit].y; }
+  } else if (tool === 'del') {
+    if (hit) {
+      edgeList = edgeList.filter(e => e.u!==hit && e.v!==hit);
+      delete nodes[hit];
+      delete nodeState[hit];
+      updateSelects(); draw();
+    }
+  }
+}
+
+function onMove(e) {
+  const {x,y} = scaleXY(e);
+  if (tool==='move' && moveNode) {
+    nodes[moveNode].x = x - moveDx;
+    nodes[moveNode].y = y - moveDy;
+    draw();
+  }
+  if (tool==='edge' && edgeSrc) {
+    // draw temp line
+    draw();
+    const n = nodes[edgeSrc];
+    if (n) {
+      ctx.beginPath(); ctx.moveTo(n.x,n.y); ctx.lineTo(x,y);
+      ctx.strokeStyle='rgba(83,74,183,.5)'; ctx.lineWidth=1.5; ctx.setLineDash([5,5]); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function onUp() { moveNode = null; }
+
+// ─── Modal ────────────────────────────────────────────────────
+function openModal(x, y) {
+  pendingPos = {x,y};
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  document.getElementById('modalLabel').value = letters[nodeCounter] || ('N'+nodeCounter);
+  document.getElementById('modalValue').value = '';
+  document.querySelector('input[name=nodeType][value=auto]').checked = true;
+  document.getElementById('modalTitle').textContent = 'Add Node';
+  document.getElementById('modalDesc').textContent = 'Leaf nodes need a numeric value. Internal nodes compute via minimax.';
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('modalLabel').focus();
+}
+
+function closeModal(confirm) {
+  document.getElementById('modalOverlay').classList.remove('show');
+  if (!confirm || !pendingPos) return;
+  const lbl = document.getElementById('modalLabel').value.trim() || ('N'+nodeCounter);
+  const valStr = document.getElementById('modalValue').value.trim();
+  const val = valStr !== '' ? parseFloat(valStr) : null;
+  const typeVal = document.querySelector('input[name=nodeType]:checked').value;
+  const id = 'n' + (nodeCounter++);
+  nodes[id] = {x: pendingPos.x, y: pendingPos.y, label: lbl, leafVal: val, typeOverride: typeVal};
+  nodeState[id] = {status:'default'};
+  updateSelects(); draw();
+  pendingPos = null;
+}
+
+// Enter key in modal
+document.getElementById('modalValue').addEventListener('keydown', e => { if(e.key==='Enter') closeModal(true); });
+document.getElementById('modalLabel').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('modalValue').focus(); });
+
+// ─── Selects ──────────────────────────────────────────────────
+function updateSelects() {
+  const ids = Object.keys(nodes);
+  const rs = document.getElementById('rootSel');
+  const rv = rs.value;
+  rs.innerHTML = '<option value="">-- pick --</option>' +
+    ids.map(id => `<option value="${id}">${nodes[id].label}</option>`).join('');
+  rs.value = ids.includes(rv) ? rv : '';
+  const canGo = rs.value !== '' && ids.length > 0 && !abRunning;
+  document.getElementById('btnStep').disabled = !canGo;
+  document.getElementById('btnRun').disabled = !canGo;
+}
+
+document.getElementById('rootSel').addEventListener('change', () => { resetAB(); updateSelects(); });
+
+// ─── Build tree helpers ───────────────────────────────────────
+function getChildren(id) {
+  return edgeList.filter(e => e.u === id).map(e => e.v);
+}
+
+function getDepth(id, visited = new Set()) {
+  if (!nodes[id] || visited.has(id)) return 0;
+  visited.add(id);
+  const ch = getChildren(id);
+  if (ch.length === 0) return 0;
+  return 1 + Math.max(...ch.map(c => getDepth(c, new Set(visited))));
+}
+
+function nodeDepth(rootId, targetId, d=0, visited=new Set()) {
+  if (!rootId || visited.has(rootId)) return -1;
+  if (rootId === targetId) return d;
+  visited.add(rootId);
+  for (const c of getChildren(rootId)) {
+    const r = nodeDepth(c, targetId, d+1, new Set(visited));
+    if (r >= 0) return r;
+  }
+  return -1;
+}
+
+function isMaxNode(id, rootId) {
+  const n = nodes[id];
+  if (!n) return true;
+  if (n.typeOverride === 'max') return true;
+  if (n.typeOverride === 'min') return false;
+  // auto: even depth = MAX
+  const d = nodeDepth(rootId, id);
+  return d % 2 === 0;
+}
+
+function isLeaf(id) {
+  return getChildren(id).length === 0;
+}
+
+// ─── Alpha-Beta pre-computation ───────────────────────────────
+// We pre-compute all steps so we can animate them one by one.
+
+function fmtInf(v) {
+  if (v === -Infinity) return '-∞';
+  if (v === Infinity) return '+∞';
+  return String(v);
+}
+
+function buildSteps(rootId) {
+  const steps = [];
+  let pruned = 0;
+
+  function maxVal(id, alpha, beta, depth, callStack) {
+    if (isLeaf(id)) {
+      const v = nodes[id].leafVal ?? 0;
+      steps.push({
+        type:'leaf', id, value:v, alpha, beta, isMax:true, callStack:[...callStack],
+        msg:`<span class="max-log">MAX-VALUE</span> · <strong>${nodes[id].label}</strong> is leaf → return <strong>${v}</strong>`
+      });
+      return v;
+    }
+    steps.push({
+      type:'enter_max', id, alpha, beta, callStack:[...callStack],
+      msg:`<span class="max-log">MAX-VALUE</span>(${nodes[id].label}, α=${fmtInf(alpha)}, β=${fmtInf(beta)}) — v = -∞`
+    });
+    let v = -Infinity;
+    const children = getChildren(id);
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const childVal = minVal(child, alpha, beta, depth+1, [...callStack, {id, isMax:true, alpha, beta}]);
+      const newV = Math.max(v, childVal);
+      steps.push({
+        type:'update_max', id, value:newV, alpha, beta, callStack:[...callStack],
+        msg:`<span class="max-log">MAX-VALUE</span>(${nodes[id].label}) · v = MAX(${fmtInf(v)}, ${childVal}) = <strong>${fmtInf(newV)}</strong>`
+      });
+      v = newV;
+      if (v >= beta) {
+        steps.push({
+          type:'prune_max', id, value:v, alpha, beta, prunedChild: children[i+1] ? children.slice(i+1) : [],
+          callStack:[...callStack],
+          msg:`<span class="prune">✂ α-PRUNE</span> · ${nodes[id].label}: v=${fmtInf(v)} ≥ β=${fmtInf(beta)} → prune remaining ${children.length-i-1} branch(es)`,
+          pruneEdges: children.slice(i+1).map(c=>id+'->'+c)
+        });
+        pruned += children.length - i - 1;
+        return v;
+      }
+      alpha = Math.max(alpha, v);
+      steps.push({
+        type:'update_alpha', id, alpha, beta, value:v, callStack:[...callStack],
+        msg:`<span class="max-log">MAX-VALUE</span>(${nodes[id].label}) · α = MAX(α, ${fmtInf(v)}) = <strong>${fmtInf(alpha)}</strong>`
+      });
+    }
+    steps.push({
+      type:'return_max', id, value:v, alpha, beta, callStack:[...callStack],
+      msg:`<span class="max-log">MAX-VALUE</span>(${nodes[id].label}) → return <strong>${fmtInf(v)}</strong>`
+    });
+    return v;
+  }
+
+  function minVal(id, alpha, beta, depth, callStack) {
+    if (isLeaf(id)) {
+      const v = nodes[id].leafVal ?? 0;
+      steps.push({
+        type:'leaf', id, value:v, alpha, beta, isMax:false, callStack:[...callStack],
+        msg:`<span class="min-log">MIN-VALUE</span> · <strong>${nodes[id].label}</strong> is leaf → return <strong>${v}</strong>`
+      });
+      return v;
+    }
+    steps.push({
+      type:'enter_min', id, alpha, beta, callStack:[...callStack],
+      msg:`<span class="min-log">MIN-VALUE</span>(${nodes[id].label}, α=${fmtInf(alpha)}, β=${fmtInf(beta)}) — v = +∞`
+    });
+    let v = Infinity;
+    const children = getChildren(id);
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const childVal = maxVal(child, alpha, beta, depth+1, [...callStack, {id, isMax:false, alpha, beta}]);
+      const newV = Math.min(v, childVal);
+      steps.push({
+        type:'update_min', id, value:newV, alpha, beta, callStack:[...callStack],
+        msg:`<span class="min-log">MIN-VALUE</span>(${nodes[id].label}) · v = MIN(${fmtInf(v)}, ${childVal}) = <strong>${fmtInf(newV)}</strong>`
+      });
+      v = newV;
+      if (v <= alpha) {
+        steps.push({
+          type:'prune_min', id, value:v, alpha, beta, prunedChild: children[i+1] ? children.slice(i+1) : [],
+          callStack:[...callStack],
+          msg:`<span class="prune">✂ β-PRUNE</span> · ${nodes[id].label}: v=${fmtInf(v)} ≤ α=${fmtInf(alpha)} → prune remaining ${children.length-i-1} branch(es)`,
+          pruneEdges: children.slice(i+1).map(c=>id+'->'+c)
+        });
+        pruned += children.length - i - 1;
+        return v;
+      }
+      beta = Math.min(beta, v);
+      steps.push({
+        type:'update_beta', id, alpha, beta, value:v, callStack:[...callStack],
+        msg:`<span class="min-log">MIN-VALUE</span>(${nodes[id].label}) · β = MIN(β, ${fmtInf(v)}) = <strong>${fmtInf(beta)}</strong>`
+      });
+    }
+    steps.push({
+      type:'return_min', id, value:v, alpha, beta, callStack:[...callStack],
+      msg:`<span class="min-log">MIN-VALUE</span>(${nodes[id].label}) → return <strong>${fmtInf(v)}</strong>`
+    });
+    return v;
+  }
+
+  // Start: root is MAX
+  maxVal(rootId, -Infinity, Infinity, 0, []);
+  return {steps, totalPruned: pruned};
+}
+
+// ─── AB Algorithm stepping ────────────────────────────────────
+function initAB() {
+  const rootId = document.getElementById('rootSel').value;
+  if (!rootId || !nodes[rootId]) return false;
+
+  // reset visual state
+  for (const id of Object.keys(nodes)) nodeState[id] = {status:'default'};
+  prunedEdges = new Set();
+  prunedCount = 0;
+  activeId = null;
+  currentAlpha = -Infinity; currentBeta = Infinity;
+  callStackData = [];
+
+  const {steps, totalPruned} = buildSteps(rootId);
+  abSteps = steps;
+  abStepIdx = 0;
+  abRunning = true;
+  abDone = false;
+
+  document.getElementById('btnPause').style.display = 'inline-block';
+  document.getElementById('prunedCount').textContent = '0';
+  document.getElementById('alphaVal').textContent = '-∞';
+  document.getElementById('betaVal').textContent = '+∞';
+  clearLog();
+  draw();
+  return true;
+}
+
+function abStep() {
+  if (!abRunning) {
+    if (!initAB()) return;
+  }
+  if (abStepIdx >= abSteps.length) {
+    finishAB();
+    return;
+  }
+  applyStep(abSteps[abStepIdx]);
+  abStepIdx++;
+  if (abStepIdx >= abSteps.length) {
+    finishAB();
+  }
+}
+
+function applyStep(step) {
+  activeId = step.id;
+  currentAlpha = step.alpha;
+  currentBeta = step.beta;
+  callStackData = step.callStack || [];
+
+  // Update node states
+  if (step.type === 'enter_max' || step.type === 'enter_min') {
+    nodeState[step.id] = {status:'active', isMax: step.type==='enter_max', alpha:step.alpha, beta:step.beta};
+  } else if (step.type === 'leaf') {
+    nodeState[step.id] = {status:'done', value:step.value, isMax:step.isMax, alpha:step.alpha, beta:step.beta};
+  } else if (step.type === 'return_max' || step.type === 'return_min') {
+    nodeState[step.id] = {status:'done', value:step.value, isMax:step.type==='return_max', alpha:step.alpha, beta:step.beta};
+  } else if (step.type === 'update_max' || step.type === 'update_min') {
+    const st = nodeState[step.id] || {};
+    nodeState[step.id] = {...st, value:step.value, alpha:step.alpha, beta:step.beta};
+  } else if (step.type === 'update_alpha' || step.type === 'update_beta') {
+    const st = nodeState[step.id] || {};
+    nodeState[step.id] = {...st, alpha:step.alpha, beta:step.beta};
+  } else if (step.type === 'prune_max' || step.type === 'prune_min') {
+    (step.pruneEdges||[]).forEach(e => prunedEdges.add(e));
+    // mark pruned children
+    (step.prunedChild||[]).forEach(cid => {
+      nodeState[cid] = {status:'pruned'};
+      markSubtreePruned(cid);
+    });
+    prunedCount = [...prunedEdges].length;
+    document.getElementById('prunedCount').textContent = prunedCount;
+  }
+
+  // Update displays
+  document.getElementById('alphaVal').textContent = fmtInf(step.alpha);
+  document.getElementById('betaVal').textContent = fmtInf(step.beta);
+  renderCallStack(step.callStack, step.id, step.type);
+  addLog(step.msg, step.type.includes('prune'));
+  draw();
+}
+
+function markSubtreePruned(id, visited=new Set()) {
+  if (visited.has(id)) return;
+  visited.add(id);
+  nodeState[id] = {status:'pruned'};
+  for (const c of getChildren(id)) {
+    prunedEdges.add(id+'->'+c);
+    markSubtreePruned(c, visited);
+  }
+}
+
+function finishAB() {
+  abDone = true;
+  abRunning = false;
+  if (runTimer) { clearInterval(runTimer); runTimer = null; }
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnRun').disabled = true;
+  document.getElementById('btnPause').style.display = 'none';
+
+  const rootId = document.getElementById('rootSel').value;
+  const rootNS = nodeState[rootId];
+  const finalVal = rootNS ? fmtInf(rootNS.value) : '?';
+  const banner = document.getElementById('resultBanner');
+  banner.textContent = `✓ Alpha-Beta complete. Optimal value = ${finalVal}. Branches pruned: ${prunedCount}.`;
+  banner.style.display = 'block';
+  addLog(`✓ DONE — optimal value at root: ${finalVal}. ${prunedCount} branch(es) pruned.`, false, true);
+  draw();
+}
+
+function runAll() {
+  if (!abRunning && !initAB()) return;
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnRun').disabled = true;
+  document.getElementById('btnPause').disabled = false;
+  const delay = SPEED_MAP[document.getElementById('speedSlider').value] || 500;
+  runTimer = setInterval(() => {
+    if (abStepIdx >= abSteps.length) { clearInterval(runTimer); finishAB(); return; }
+    applyStep(abSteps[abStepIdx]);
+    abStepIdx++;
+  }, delay);
+}
+
+function pauseRun() {
+  if (runTimer) { clearInterval(runTimer); runTimer = null; }
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnRun').disabled = false;
+}
+
+function resetAB() {
+  if (runTimer) { clearInterval(runTimer); runTimer = null; }
+  abRunning = false; abDone = false; abSteps = []; abStepIdx = 0;
+  prunedEdges = new Set(); prunedCount = 0;
+  activeId = null; currentAlpha = -Infinity; currentBeta = Infinity; callStackData = [];
+  for (const id of Object.keys(nodes)) nodeState[id] = {status:'default'};
+  document.getElementById('resultBanner').style.display = 'none';
+  document.getElementById('alphaVal').textContent = '-∞';
+  document.getElementById('betaVal').textContent = '+∞';
+  document.getElementById('prunedCount').textContent = '0';
+  document.getElementById('btnPause').style.display = 'none';
+  document.getElementById('logWrap').innerHTML = '<div class="log-line">Reset. Pick root and press Next Step.</div>';
+  renderCallStack([]);
+  const canGo = document.getElementById('rootSel').value !== '' && Object.keys(nodes).length > 0;
+  document.getElementById('btnStep').disabled = !canGo;
+  document.getElementById('btnRun').disabled = !canGo;
+  draw();
+}
+
+function clearAll() {
+  nodes = {}; edgeList = []; nodeCounter = 0; nodeState = {};
+  resetAB();
+  document.getElementById('logWrap').innerHTML = '<div class="log-line">Canvas cleared. Add nodes to start.</div>';
+  updateSelects(); draw();
+}
+
+// ─── Load Example ─────────────────────────────────────────────
+function loadExample() {
+  clearAll();
+  const W = canvas.width/dpr, H = canvas.height/dpr;
+  const cx = W/2, top = 50;
+  // Classic 3-level game tree (depth 0=MAX, 1=MIN, 2=MAX leaves)
+  const layout = [
+    // root
+    {id:'n0', label:'A', x:cx, y:top, leafVal:null, typeOverride:'auto'},
+    // depth 1 (MIN)
+    {id:'n1', label:'B', x:cx-180, y:top+110, leafVal:null, typeOverride:'auto'},
+    {id:'n2', label:'C', x:cx+180, y:top+110, leafVal:null, typeOverride:'auto'},
+    // depth 2 (MAX leaves)
+    {id:'n3', label:'3',  x:cx-270, y:top+220, leafVal:3,  typeOverride:'auto'},
+    {id:'n4', label:'5',  x:cx-180, y:top+220, leafVal:5,  typeOverride:'auto'},
+    {id:'n5', label:'2',  x:cx-90,  y:top+220, leafVal:2,  typeOverride:'auto'},
+    {id:'n6', label:'9',  x:cx+90,  y:top+220, leafVal:9,  typeOverride:'auto'},
+    {id:'n7', label:'1',  x:cx+180, y:top+220, leafVal:1,  typeOverride:'auto'},
+    {id:'n8', label:'8',  x:cx+270, y:top+220, leafVal:8,  typeOverride:'auto'},
+  ];
+  layout.forEach(({id,...rest}) => { nodes[id] = rest; nodeState[id] = {status:'default'}; });
+  nodeCounter = layout.length;
+  const edges = [
+    ['n0','n1'],['n0','n2'],
+    ['n1','n3'],['n1','n4'],['n1','n5'],
+    ['n2','n6'],['n2','n7'],['n2','n8'],
+  ];
+  edges.forEach(([u,v]) => edgeList.push({u,v}));
+  document.getElementById('rootSel').value = 'n0';
+  updateSelects();
+  document.getElementById('rootSel').value = 'n0';
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnRun').disabled = false;
+  document.getElementById('hint').innerHTML = 'Example loaded! Root = <strong>A (MAX)</strong>. Press <strong>Next Step</strong> to run alpha-beta pruning.';
+  draw();
+}
+
+// ─── Log & panels ─────────────────────────────────────────────
+function addLog(msg, isPrune=false, isDone=false) {
+  const lw = document.getElementById('logWrap');
+  const d = document.createElement('div');
+  d.className = 'log-line' + (isPrune?' prune':'') + (isDone?' done':'');
+  d.innerHTML = msg;
+  lw.appendChild(d);
+  lw.scrollTop = lw.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('logWrap').innerHTML = '<div class="log-line">Alpha-Beta started. Press Next Step.</div>';
+}
+
+function renderCallStack(stack, activeId, stepType) {
+  const cs = document.getElementById('callStack');
+  if (!stack || stack.length === 0) {
+    cs.innerHTML = '<div style="font-size:.62rem;color:var(--text3);font-family:var(--font-mono);">empty</div>';
+    return;
+  }
+  cs.innerHTML = stack.map((item, i) => {
+    const isTop = i === stack.length - 1;
+    const type = item.isMax ? 'max-type' : 'min-type';
+    const fn = item.isMax ? 'MAX' : 'MIN';
+    const lbl = nodes[item.id]?.label || item.id;
+    return `<div class="cs-item ${type}${isTop?' top':''}">
+      <span>${fn}(${lbl})</span>
+      <span class="cs-tag">α=${fmtInf(item.alpha)} β=${fmtInf(item.beta)}</span>
+    </div>`;
+  }).join('');
+  // Add current active
+  if (activeId && nodes[activeId]) {
+    const isMaxStep = stepType && stepType.includes('max');
+    const type = isMaxStep ? 'max-type' : 'min-type';
+    const fn = isMaxStep ? 'MAX' : 'MIN';
+    const lbl = nodes[activeId].label;
+    cs.innerHTML += `<div class="cs-item ${type} top"><span>→ ${fn}(${lbl})</span><span class="cs-tag">current</span></div>`;
+  }
+  cs.scrollTop = cs.scrollHeight;
+}
+
+// ─── Drawing ─────────────────────────────────────────────────
+function draw() {
+  const W = canvas.width/dpr, H = canvas.height/dpr;
+  ctx.clearRect(0,0,W,H);
+
+  const rootId = document.getElementById('rootSel')?.value;
+
+  // Draw edges
+  for (const e of edgeList) {
+    const na = nodes[e.u], nb = nodes[e.v];
+    if (!na||!nb) continue;
+    const key = e.u+'->'+e.v;
+    const isPruned = prunedEdges.has(key);
+    const isActive = e.u === activeId || e.v === activeId;
+
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y);
+    if (isPruned) {
+      ctx.strokeStyle = 'rgba(80,80,120,0.25)'; ctx.lineWidth = 1; ctx.setLineDash([4,5]);
+    } else if (isActive) {
+      ctx.strokeStyle = 'rgba(255,230,109,.6)'; ctx.lineWidth = 2; ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = 'rgba(100,110,140,0.4)'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // Arrowhead
+    if (!isPruned) {
+      const angle = Math.atan2(nb.y-na.y, nb.x-na.x);
+      const ar = 26;
+      const ax = nb.x - Math.cos(angle)*ar;
+      const ay = nb.y - Math.sin(angle)*ar;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(ax - 10*Math.cos(angle-0.4), ay - 10*Math.sin(angle-0.4));
+      ctx.lineTo(ax - 10*Math.cos(angle+0.4), ay - 10*Math.sin(angle+0.4));
+      ctx.closePath();
+      ctx.fillStyle = isActive ? 'rgba(255,230,109,.6)' : 'rgba(100,110,140,0.4)';
+      ctx.fill();
+    }
+
+    // Pruned X
+    if (isPruned) {
+      const mx=(na.x+nb.x)/2, my=(na.y+nb.y)/2;
+      ctx.fillStyle='rgba(255,107,107,.5)'; ctx.font='bold 11px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('✕', mx, my);
+    }
+
+    // Delete mode: show midpoint dot
+    if (tool==='del') {
+      const mx=(na.x+nb.x)/2, my=(na.y+nb.y)/2;
+      ctx.fillStyle='rgba(255,107,107,.4)';
+      ctx.beginPath(); ctx.arc(mx,my,6,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  // Temp edge line while connecting
+  if (tool==='edge' && edgeSrc && nodes[edgeSrc]) {
+    ctx.strokeStyle='rgba(83,74,183,.4)'; ctx.lineWidth=1.5; ctx.setLineDash([5,5]);
+    ctx.beginPath(); ctx.arc(nodes[edgeSrc].x, nodes[edgeSrc].y, 28, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Draw nodes
+  for (const [id, n] of Object.entries(nodes)) {
+    const ns = nodeState[id] || {status:'default'};
+    const isActive = id === activeId;
+    const isMax = isMaxNode(id, rootId);
+    const depth = rootId ? nodeDepth(rootId, id) : 0;
+
+    let fillColor, strokeColor, textColor;
+
+    if (ns.status === 'pruned') {
+      fillColor = 'rgba(30,32,50,0.8)';
+      strokeColor = 'rgba(80,80,120,0.3)';
+      textColor = 'rgba(80,80,120,0.6)';
+    } else if (isActive) {
+      fillColor = 'rgba(255,230,109,0.15)';
+      strokeColor = '#FFE66D';
+      textColor = '#FFE66D';
+    } else if (ns.status === 'done') {
+      fillColor = isMax ? 'rgba(255,107,107,0.15)' : 'rgba(78,205,196,0.15)';
+      strokeColor = isMax ? '#FF6B6B' : '#4ECDC4';
+      textColor = isMax ? '#FF6B6B' : '#4ECDC4';
+    } else if (ns.status === 'active') {
+      fillColor = isMax ? 'rgba(255,107,107,0.12)' : 'rgba(78,205,196,0.12)';
+      strokeColor = isMax ? 'rgba(255,107,107,.7)' : 'rgba(78,205,196,.7)';
+      textColor = isMax ? '#FF6B6B' : '#4ECDC4';
+    } else {
+      fillColor = 'rgba(26,30,40,0.9)';
+      strokeColor = isMax ? 'rgba(255,107,107,0.4)' : 'rgba(78,205,196,0.4)';
+      textColor = '#8A91A8';
+    }
+
+    // Node shadow glow for active
+    if (isActive || ns.status === 'active') {
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = isMax ? 'rgba(255,107,107,.4)' : 'rgba(78,205,196,.4)';
+    }
+
+    // Node shape: MAX = circle, MIN = square
+    ctx.beginPath();
+    if (!isMax && ns.status !== 'pruned') {
+      roundRect(ctx, n.x-22, n.y-22, 44, 44, 8);
+    } else {
+      ctx.arc(n.x, n.y, 23, 0, Math.PI*2);
+    }
+    ctx.fillStyle = fillColor; ctx.fill();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = isActive ? 2.5 : 1.5;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Label
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `bold 12px var(--font-mono, monospace)`;
+    ctx.fillText(n.label, n.x, n.y - (ns.value !== undefined ? 3 : 0));
+
+    // Computed/leaf value below label
+    const dispVal = ns.value !== undefined ? ns.value : (n.leafVal !== null && n.leafVal !== undefined ? n.leafVal : null);
+    if (dispVal !== null && dispVal !== undefined) {
+      ctx.font = `11px var(--font-mono, monospace)`;
+      ctx.fillStyle = ns.status === 'pruned' ? 'rgba(80,80,120,0.5)' : (isMax ? '#FF6B6B' : '#4ECDC4');
+      ctx.fillText(fmtInf(dispVal), n.x, n.y + 9);
+    }
+
+    // α/β annotation
+    if (isActive && (currentAlpha !== -Infinity || currentBeta !== Infinity)) {
+      ctx.font = '9px var(--font-mono, monospace)';
+      ctx.fillStyle = 'rgba(167,139,250,.9)';
+      ctx.textAlign = 'left';
+      ctx.fillText(`α:${fmtInf(currentAlpha)}`, n.x+26, n.y-8);
+      ctx.fillStyle = 'rgba(52,211,153,.9)';
+      ctx.fillText(`β:${fmtInf(currentBeta)}`, n.x+26, n.y+6);
+    }
+
+    // Root label
+    if (id === rootId && !abRunning && !abDone) {
+      ctx.font = '9px sans-serif'; ctx.fillStyle = 'rgba(255,230,109,.6)';
+      ctx.textAlign = 'center'; ctx.fillText('root', n.x, n.y+32);
+    }
+  }
+
+  // Empty state
+  if (Object.keys(nodes).length === 0) {
+    ctx.fillStyle = 'rgba(100,110,140,0.25)'; ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Click anywhere to add nodes', W/2, H/2);
+  }
+
+  // Legend bottom
+  const leg = [
+    {shape:'circle', color:'rgba(255,107,107,0.6)', label:'MAX (circle)'},
+    {shape:'square', color:'rgba(78,205,196,0.6)', label:'MIN (square)'},
+    {shape:'circle', color:'rgba(255,230,109,0.7)', label:'Active'},
+    {shape:'circle', color:'rgba(80,80,120,0.4)', label:'Pruned'},
+  ];
+  let lx = 10;
+  ctx.font = '9px sans-serif'; ctx.textBaseline = 'middle';
+  for (const l of leg) {
+    ctx.fillStyle = l.color;
+    if (l.shape === 'square') {
+      ctx.fillRect(lx, H-17, 11, 11);
+    } else {
+      ctx.beginPath(); ctx.arc(lx+5, H-11, 5, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(138,145,168,0.8)'; ctx.textAlign = 'left';
+    ctx.fillText(l.label, lx+14, H-11);
+    lx += ctx.measureText(l.label).width + 28;
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+window.addEventListener('resize', setup);
+setup();
+</script>
+</body>
+</html>
