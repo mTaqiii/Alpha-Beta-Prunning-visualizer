@@ -2,9 +2,9 @@
 
 ## About
 
-I have not Found any Alpha Beta Pruning Tree visualizer anywhere on Internet where I could check that I am working correctly or  not
+I couldn't find any Alpha-Beta Pruning tree visualizer on the internet that lets me verify whether I'm solving problems correctly.
 
-this repo guuide you step by step
+This repository provides a step-by-step guide to understanding and implementing the Alpha-Beta Pruning algorithm. It also includes an improved visualizer that helps users build, visualize, and verify Alpha-Beta Pruning trees, making it easier to learn the algorithm and check their solutions.
 
 
 ## Overview
@@ -33,27 +33,25 @@ This repository provides an interactive visualizer for the Alpha-Beta Pruning al
 
 ## Screenshots
 
-Below are example images of the visualizer. Upload your screenshots to the `screenshots/` folder using the same filenames shown here so the images render in this README.
+Below are screenshots from the visualizer. The image files are stored in the repository `screenshots/` folder.
 
 <p align="center">
-  <img src="screenshots/optionA-1.png" width="1000" alt="Visualizer — completed run and step log">
+  <img src="screenshots/Screenshot%202026-07-09%20133115.png" width="1000" alt="Visualizer — completed run and step log">
 </p>
 
 **Figure 1.** Completed run summary and step log.
 
 <p align="center">
-  <img src="screenshots/optionA-2.png" width="1000" alt="Visualizer — tree with pruned branch">
+  <img src="screenshots/Screenshot%202026-07-09%20133233.png" width="1000" alt="Visualizer — tree with pruned branch">
 </p>
 
 **Figure 2.** The tree view showing a pruned branch (dashed and greyed out).
 
 <p align="center">
-  <img src="screenshots/optionA-3.png" width="1000" alt="Visualizer — initial canvas and controls">
+  <img src="screenshots/Screenshot%202026-07-09%20133247.png" width="1000" alt="Visualizer — initial canvas and controls">
 </p>
 
 **Figure 3.** Initial canvas and the control buttons (Add Node, Connect, Move, etc.).
-
-If you prefer different filenames, update the image paths above to match the files you upload.
 
 ## Suggested short repository description (for GitHub "About" box)
 
