@@ -1,0 +1,19 @@
+This is a placeholder file for the screenshot image optionA-2.png.
+
+To add the real image, upload a file named `optionA-2.png` into this screenshots/ folder (replace this placeholder file) using the GitHub web UI or git.
+
+Suggested filename to match README image reference: screenshots/optionA-2.png
+
+How to replace this placeholder using the web UI:
+1. Go to this repository on GitHub.
+2. Open the screenshots/ directory.
+3. Click Add file → Upload files and drag the PNG file.
+4. Commit the change.
+
+Or replace locally and push with git:
+
+  mkdir -p screenshots
+  cp /path/to/your/optionA-2.png screenshots/optionA-2.png
+  git add screenshots/optionA-2.png
+  git commit -m "Add screenshot optionA-2.png"
+  git push

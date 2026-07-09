@@ -31,13 +31,35 @@ This repository provides an interactive visualizer for the Alpha-Beta Pruning al
 - Use the controls in the UI to step through nodes.
 - Observe how alpha and beta values change and which branches get pruned.
 
+## Screenshots
+
+Below are example images of the visualizer. Upload your screenshots to the `screenshots/` folder using the same filenames shown here so the images render in this README.
+
+<p align="center">
+  <img src="screenshots/optionA-1.png" width="1000" alt="Visualizer — completed run and step log">
+</p>
+
+**Figure 1.** Completed run summary and step log.
+
+<p align="center">
+  <img src="screenshots/optionA-2.png" width="1000" alt="Visualizer — tree with pruned branch">
+</p>
+
+**Figure 2.** The tree view showing a pruned branch (dashed and greyed out).
+
+<p align="center">
+  <img src="screenshots/optionA-3.png" width="1000" alt="Visualizer — initial canvas and controls">
+</p>
+
+**Figure 3.** Initial canvas and the control buttons (Add Node, Connect, Move, etc.).
+
+If you prefer different filenames, update the image paths above to match the files you upload.
+
 ## Suggested short repository description (for GitHub "About" box)
 
 You can copy this short text to the repository description field in GitHub Settings → Repository name and description:
 
 "Alpha-Beta Pruning tree visualizer — a step-by-step interactive tool to verify and learn Alpha-Beta Pruning."
-
-(If you want the exact sentence you provided as the short description, it is included above in the About section.)
 
 ## Contributing
 
