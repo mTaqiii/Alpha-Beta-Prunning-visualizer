@@ -1,4 +1,4 @@
-# Alpha-Beta Prunning visualizer
+# Alpha-Beta Pruning visualizer
 
 ## About
 
@@ -68,5 +68,4 @@ Contributions are welcome. Feel free to open issues for bugs or feature requests
 Specify a license if you want others to reuse your code. If you're not sure, consider MIT License.
 
 ## Contact
-
-If you want help or want to collaborate, open an issue or reach out via your GitHub profile.
+For questions or suggestions, open an issue on the repository or contact the repository owner: https://github.com/mTaqiii
