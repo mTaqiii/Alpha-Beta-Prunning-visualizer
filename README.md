@@ -1,12 +1,3 @@
-# Alpha-Beta Pruning visualizer
-
-## About
-
-I couldn't find any Alpha-Beta Pruning tree visualizer on the internet that lets me verify whether I'm solving problems correctly.
-
-This repository provides a step-by-step guide to understanding and implementing the Alpha-Beta Pruning algorithm. It also includes an improved visualizer that helps users build, visualize, and verify Alpha-Beta Pruning trees, making it easier to learn the algorithm and check their solutions.
-
-
 ## Overview
 
 This repository provides an interactive visualizer for the Alpha-Beta Pruning algorithm. It helps you visualize game trees, explore how alpha and beta values propagate, and verify that your implementations are working correctly.
